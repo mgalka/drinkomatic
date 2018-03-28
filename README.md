@@ -4,8 +4,10 @@ The machine uses **Raspberry Pi** as it's brain.
 
 This code was used to control the drink pouring machine at the Python-Łódź Meetup held in Łódź (Poland). During the presentation the machine was controlled with an Amazon Echo Dot (Alexa powered) device.
 
+
 # Whats inside these files?
 `drinkomatic.py` - The main module. It controls electronic parts and provides friendly drink-pouring API.
+
 `pour_test.py` - A simple use case of a `drikomatic.py` module.
 
 
