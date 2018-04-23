@@ -1,10 +1,12 @@
-import RPi.GPIO as GPIO
+from RPi import GPIO
 import time
 from collections import namedtuple
-
+from queue import Queue
+import threading
 
 
 Dispensers = namedtuple('Dispensers', ['vodka', 'juice'])
+
 
 class Dispenser:
     def __init__(self, relay, time_per_10ml=1.4):
@@ -26,6 +28,7 @@ class Dispenser:
         seconds = (self.time_per_10ml * ml) / 10
         self.pour_time(seconds)
 
+
 class Buzzer:
     def __init__(self, pin):
         self.pin = pin
@@ -38,12 +41,19 @@ class Buzzer:
             GPIO.output(self.pin, GPIO.LOW)
             time.sleep(0.1)
 
+
 class Drinkomatic:
     def __init__(self, vodka_relay, juice_relay, buzzer_pin):
         self.dispensers = Dispensers(Dispenser(vodka_relay, time_per_10ml=1.4),
                                      Dispenser(juice_relay, time_per_10ml=0.91))
         self.buzzer = Buzzer(buzzer_pin)
+        self.drink_queue = Queue()
+        self._prepare_thread = threading.Thread(target=self._prepare_drink)
+        print('thread start')
+        self._prepare_thread.start()
+        print('rpi init')
         self._init_rpi()
+        print('init done')
 
     def _init_rpi(self):
         GPIO.setmode(GPIO.BOARD)
@@ -59,7 +69,22 @@ class Drinkomatic:
         GPIO.output(self.buzzer.pin, GPIO.LOW)
         GPIO.cleanup()
 
+    def stop(self):
+        print('stop')
+        self.drink_queue.put(None)
+        self._prepare_thread.join()
+        self._cleanup()
+
     def prepare_drink(self, recipe):
-        for disp, amount in recipe.items():
-            dispenser = self.dispensers[disp]
-            dispenser.pour_amount(amount)
+        self.drink_queue.put(recipe)
+
+    def _prepare_drink(self):
+        while True:
+            print('wait for recipe')
+            recipe = self.drink_queue.get()
+            print(recipe)
+            if recipe is None:
+                break
+            for disp, amount in recipe.items():
+                dispenser = self.dispensers[disp]
+                dispenser.pour_amount(amount)
