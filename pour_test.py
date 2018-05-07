@@ -1,9 +1,9 @@
 import drinkomatic
 
-VODKA_RELAY = 16
-JUICE_RELAY = 18
+VODKA_RELAY_PIN = 16
+JUICE_RELAY_PIN = 18
 BUZZER_PIN = 37
-dear_assistant = drinkomatic.Drinkomatic(VODKA_RELAY, JUICE_RELAY, BUZZER_PIN)
+dear_assistant = drinkomatic.Drinkomatic(VODKA_RELAY_PIN, JUICE_RELAY_PIN, BUZZER_PIN)
 vodka_recipe = {
     0: 20
 }
@@ -14,7 +14,10 @@ drink_recipe = {
 }
 
 if __name__ == '__main__':
-    print('Preparing vodka...')
-    dear_assistant.prepare_drink(vodka_recipe)
-    print('Preparing.drink...')
-    dear_assistant.prepare_drink(drink_recipe)
+    try:
+        print('Preparing vodka...')
+        dear_assistant.prepare_drink(vodka_recipe)
+        print('Preparing.drink...')
+        dear_assistant.prepare_drink(drink_recipe)
+    finally:
+        dear_assistant.stop()
